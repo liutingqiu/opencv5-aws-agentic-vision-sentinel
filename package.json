@@ -1,0 +1,25 @@
+{
+  "name": "opencv5-aws-agentic-vision-sentinel",
+  "version": "1.0.0",
+  "description": "OpenCV 5 Agentic Vision Sentinel with AWS Serverless Ingestion & Multimodal Edge Pipeline",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test tests/*.test.js"
+  },
+  "keywords": [
+    "opencv5",
+    "aws",
+    "agentic-vision",
+    "serverless",
+    "computer-vision",
+    "devpost-hackathon"
+  ],
+  "author": "Tingqiu Liu <tianqi689@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}
