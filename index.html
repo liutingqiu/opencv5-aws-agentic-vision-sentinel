@@ -1,371 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OpenCV 5 AWS Agentic Vision Sentinel 👁️☁️ | Serverless Multimodal Edge</title>
-  <meta name="description" content="OpenCV 5 Agentic Vision Sentinel with AWS Serverless Ingestion & Multimodal Edge Pipeline for the OpenCV AI Competition 2026 ($20,250 Cash).">
-  <style>
-    :root {
-      --bg: #070e17;
-      --card-bg: #0f1a2c;
-      --card-border: #1e2e46;
-      --opencv-blue: #0284c7;
-      --aws-orange: #ff9900;
-      --accent-green: #10b981;
-      --alert-red: #ef4444;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-    }
-
-    header {
-      background: linear-gradient(180deg, rgba(2, 132, 199, 0.15) 0%, rgba(7, 14, 23, 0) 100%);
-      padding: 2.5rem 2rem 1.5rem;
-      border-bottom: 1px solid var(--card-border);
-      text-align: center;
-    }
-
-    .badge {
-      display: inline-block;
-      background: rgba(2, 132, 199, 0.15);
-      color: var(--opencv-blue);
-      border: 1px solid rgba(2, 132, 199, 0.4);
-      padding: 0.3rem 0.8rem;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.75rem;
-    }
-
-    h1 {
-      font-size: 2.2rem;
-      font-weight: 800;
-      background: linear-gradient(90deg, #ffffff 0%, var(--opencv-blue) 50%, var(--aws-orange) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 0.5rem;
-    }
-
-    .subtitle {
-      font-size: 1.05rem;
-      color: var(--text-muted);
-      max-width: 820px;
-      margin: 0 auto 1.5rem;
-    }
-
-    .btn-group {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.65rem 1.25rem;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      cursor: pointer;
-      border: none;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--opencv-blue) 0%, #0369a1 100%);
-      color: #fff;
-      font-weight: 700;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
-    }
-
-    .btn-secondary {
-      background: var(--card-bg);
-      color: var(--aws-orange);
-      border: 1px solid var(--card-border);
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 4rem;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-    }
-
-    @media (max-width: 880px) {
-      .grid { grid-template-columns: 1fr; }
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.75rem;
-    }
-
-    .card-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-
-    label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 0.5rem;
-    }
-
-    input, select {
-      width: 100%;
-      background: #08101e;
-      border: 1px solid var(--card-border);
-      color: #fff;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    input:focus, select:focus {
-      border-color: var(--opencv-blue);
-    }
-
-    .stat-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .stat-box {
-      background: #08101e;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 1rem;
-    }
-
-    .stat-lbl {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      font-weight: 600;
-    }
-
-    .stat-val {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: var(--opencv-blue);
-      margin-top: 0.25rem;
-    }
-
-    pre {
-      background: #08101e;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 1rem;
-      font-family: monospace;
-      font-size: 0.85rem;
-      color: #cbd5e1;
-      overflow-x: auto;
-      margin-top: 1rem;
-    }
-
-    footer {
-      border-top: 1px solid var(--card-border);
-      text-align: center;
-      padding: 2rem;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-    }
-
-    footer a {
-      color: var(--opencv-blue);
-      text-decoration: none;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OpenCV 5 Agentic Vision Sentinel - run record</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+:root{--bg:#060b13;--panel:#0d1724;--line:#1d2c3f;--ink:#e8f0f8;--muted:#8ba0b6;--cv:#12b0e8;--aws:#ff9900;--alert:#ff3b5c;--ok:#25d07d}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(1200px 600px at 20% -10%,#10243a 0%,var(--bg) 60%);color:var(--ink);font-family:"IBM Plex Mono",ui-monospace,monospace;line-height:1.55;min-height:100vh}
+.wrap{max-width:1240px;margin:0 auto;padding:32px 22px 80px}
+header.top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:18px}
+h1{font-family:"Space Grotesk",sans-serif;font-size:clamp(22px,3.4vw,38px);letter-spacing:-.02em;line-height:1.1}
+h1 span{color:var(--cv)}
+.eyebrow{color:var(--muted);font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+.sub{margin-top:8px;color:var(--muted);font-size:12.5px;max-width:640px}
+.stamp{display:flex;gap:10px;flex-wrap:wrap;font-size:12px}
+.chip{border:1px solid var(--line);padding:5px 10px;border-radius:999px;color:var(--muted)}
+.chip b{color:var(--ink);font-weight:600}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:22px;margin-top:26px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.panel{background:linear-gradient(180deg,rgba(18,32,48,.9),rgba(9,16,26,.94));border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.panel h2{font-family:"Space Grotesk",sans-serif;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+video{width:100%;display:block;background:#000;aspect-ratio:4/3}
+.bar{height:3px;background:var(--line)}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cv),var(--aws))}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:1px;background:var(--line)}
+.stat{background:#0a1420;padding:12px 14px}
+.stat .k{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:"Space Grotesk",sans-serif;font-size:21px;margin-top:3px}
+.stat .v small{font-size:11px;color:var(--muted);margin-left:3px}
+.feed{max-height:472px;overflow:auto}
+.ev{display:grid;grid-template-columns:58px 1fr auto;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(29,44,63,.7);cursor:pointer;align-items:center}
+.ev:hover{background:rgba(18,176,232,.09)}
+.ev .t{color:var(--muted);font-size:11.5px}
+.ev .name{font-size:12px}
+.ev.CRITICAL .name{color:var(--alert)}
+.ev.WARNING .name{color:var(--aws)}
+.ev .id{font-size:10.5px;color:var(--muted)}
+.empty{padding:18px;color:var(--muted);font-size:13px}
+section.lower{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:900px){section.lower{grid-template-columns:1fr}}
+pre{font-size:11.5px;padding:16px;overflow:auto;color:#b8ccdd;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+td,th{padding:8px 14px;border-bottom:1px solid rgba(29,44,63,.7);text-align:left}
+th{color:var(--muted);font-weight:500;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+.note{padding:13px 16px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+.note b{color:var(--ink)}
+footer{margin-top:30px;color:var(--muted);font-size:12px;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:16px}
+a{color:var(--cv);text-decoration:none}a:hover{text-decoration:underline}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:6px;box-shadow:0 0 9px var(--ok)}
+</style>
 </head>
 <body>
-
-  <header>
-    <div class="badge">OpenCV &amp; AWS • OpenCV AI Competition 2026 ($20,250 Cash) • Agentic Vision</div>
-    <h1>OpenCV 5 AWS Agentic Vision Sentinel 👁️☁️</h1>
-    <p class="subtitle">Autonomous Computer Vision Sentinel utilizing OpenCV 5 multimodal edge pipelines, real-time spatial object tracking, and AWS Serverless Lambda/EventBridge alert routing.</p>
-    <div class="btn-group">
-      <a href="https://github.com/liutingqiu/opencv5-aws-agentic-vision-sentinel" target="_blank" class="btn btn-primary">
-        GitHub Source Code
-      </a>
-      <a href="https://opencv26.devpost.com/" target="_blank" class="btn btn-secondary">
-        Devpost Hackathon ($20K)
-      </a>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">OpenCV AI Competition 2026 &middot; powered by AWS</div>
+      <h1>Agentic Vision <span>Sentinel</span></h1>
+      <p class="sub">Run record. Every figure on this page is emitted by the pipeline in this repository while decoding an actual video file; nothing here is simulated.</p>
+    </div>
+    <div class="stamp">
+      <span class="chip"><span class="dot"></span>OpenCV <b id="cvv">-</b></span>
+      <span class="chip">frames <b id="frames">-</b></span>
+      <span class="chip">alerts <b id="alerts">-</b></span>
     </div>
   </header>
-
-  <div class="container">
-    <div class="grid">
-      <!-- Input Card -->
-      <div class="card">
-        <div class="card-title">📹 OpenCV 5 Video Stream Simulator</div>
-        
-        <div class="form-group">
-          <label for="cameraFeed">Source Camera Feed:</label>
-          <select id="cameraFeed">
-            <option value="cam-substation-main" selected>Substation Main Ingress (Industrial Edge)</option>
-            <option value="cam-warehouse-perimeter">Warehouse Perimeter Fence (Security Corridor)</option>
-            <option value="cam-server-room">Core Data Center Thermal Corridor</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="scenarioSelect">Injected Physical World Scenario:</label>
-          <select id="scenarioSelect">
-            <option value="THERMAL_HAZARD" selected>Equipment Overheat Hazard (Thermal Infrared Spike)</option>
-            <option value="MISSING_PPE">Safety PPE Violation (Person detected without hard hat/vest)</option>
-            <option value="INTRUSION">Perimeter Intrusion (Unauthorized access boundary crossed)</option>
-            <option value="NORMAL">Normal Operation (Compliant, clear corridor)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="awsRegion">Target AWS Serverless Region:</label>
-          <input type="text" id="awsRegion" value="us-east-1 (N. Virginia)">
-        </div>
-
-        <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.5rem;" onclick="runInference()">
-          👁️ Process Frame via OpenCV 5 &amp; AWS Sentinel
-        </button>
-      </div>
-
-      <!-- Output Card -->
-      <div class="card">
-        <div class="card-title">📊 Edge Telemetry &amp; AWS EventBridge Routing</div>
-        
-        <div class="stat-row">
-          <div class="stat-box">
-            <div class="stat-lbl">Detection Verdict</div>
-            <div class="stat-val" id="statusVal" style="color: var(--alert-red);">CRITICAL 🚨</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-lbl">Inference Latency</div>
-            <div class="stat-val" id="latencyVal" style="color: var(--accent-green);">16.2 ms (Sub-30fps)</div>
-          </div>
-        </div>
-
-        <div class="stat-row">
-          <div class="stat-box">
-            <div class="stat-lbl">Detected Anomaly</div>
-            <div class="stat-val" id="anomalyVal" style="font-size: 1rem; color: #fff;">EQUIPMENT_OVERHEAT</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-lbl">EventBridge Event ID</div>
-            <div class="stat-val" id="ebVal" style="font-size: 0.95rem; color: var(--aws-orange); word-break: break-all;">aws-eb-event-9901-7fa1</div>
-          </div>
-        </div>
-
-        <div style="margin-top: 1rem;">
-          <div class="stat-lbl" style="margin-bottom: 0.25rem;">AWS S3 &amp; Lambda Serverless Payload:</div>
-          <pre id="awsOutput">{
-  "s3Bucket": "opencv5-sentinel-video-frames-prod",
-  "lambdaFunction": "opencv5-edge-evaluator",
-  "sqsQueue": "opencv5-alerts-queue",
-  "status": "DISPATCHED"
-}</pre>
-        </div>
-      </div>
+  <div class="grid">
+    <div class="panel">
+      <h2><span>Annotated output</span><span id="clock">t=0.0s</span></h2>
+      <video id="player" src="assets/annotated.mp4" controls playsinline muted preload="metadata"></video>
+      <div class="bar"><i id="progress"></i></div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="panel">
+      <h2><span>Alert stream</span><span id="feedcount">-</span></h2>
+      <div class="feed" id="feed"><div class="empty">Loading events...</div></div>
     </div>
   </div>
-
+  <section class="lower">
+    <div class="panel">
+      <h2>Measured latency</h2>
+      <table><tbody id="latency"></tbody></table>
+      <div class="note">SSD-MobileNet-v1 (ONNX) through the OpenCV 5 DNN engine, uint8 NHWC input, CPU only. Tail latency is reported because a mean hides the frames that break a 10 fps budget.</div>
+    </div>
+    <div class="panel">
+      <h2>Reproduce</h2>
+      <pre>pip install -r requirements.txt
+python -m sentinel.cli --source assets/vtest.avi --out runs/demo --mode local</pre>
+      <div class="note">AWS mode routes the same boto3 calls to EventBridge, S3 and SQS. This record used <b>--mode local</b> (moto), and <b>runs/demo/aws_calls.jsonl</b> keeps every request identifier.</div>
+    </div>
+  </section>
   <footer>
-    <p>Submitted to the <strong>OpenCV AI Competition 2026, powered by AWS ($20,250 Cash Prize Pool)</strong> on Devpost</p>
-    <p style="margin-top: 0.25rem;">Repository: <a href="https://github.com/liutingqiu/opencv5-aws-agentic-vision-sentinel" target="_blank">github.com/liutingqiu/opencv5-aws-agentic-vision-sentinel</a></p>
+    <a href="https://github.com/liutingqiu/opencv5-aws-agentic-vision-sentinel">repository</a>
+    <a href="docs/technical-report.md">technical report</a>
+    <a href="docs/architecture.svg">architecture</a>
+    <span id="src"></span>
   </footer>
-
-  <script>
-    function runInference() {
-      const scenario = document.getElementById('scenarioSelect').value;
-      const ebId = 'aws-eb-event-' + Math.floor(Math.random() * 9000 + 1000) + '-' + Math.random().toString(16).substring(2, 6);
-
-      if (scenario === 'THERMAL_HAZARD') {
-        document.getElementById('statusVal').innerText = "CRITICAL 🚨";
-        document.getElementById('statusVal').style.color = "var(--alert-red)";
-        document.getElementById('anomalyVal').innerText = "EQUIPMENT_OVERHEAT";
-        document.getElementById('ebVal').innerText = ebId;
-        document.getElementById('awsOutput').innerText = JSON.stringify({
-          action: "EMERGENCY_DISPATCH",
-          trigger: "EQUIPMENT_OVERHEAT_HAZARD",
-          confidenceScore: 0.98,
-          awsEventBridgeEventId: ebId,
-          sqsAlertQueue: "https://sqs.us-east-1.amazonaws.com/123456789012/opencv5-alerts-queue"
-        }, null, 2);
-      } else if (scenario === 'MISSING_PPE') {
-        document.getElementById('statusVal').innerText = "WARNING ⚠️";
-        document.getElementById('statusVal').style.color = "var(--aws-orange)";
-        document.getElementById('anomalyVal').innerText = "SAFETY_GEAR_MISSING";
-        document.getElementById('ebVal').innerText = ebId;
-        document.getElementById('awsOutput').innerText = JSON.stringify({
-          action: "AUDIT_NOTICE",
-          trigger: "SAFETY_GEAR_MISSING",
-          confidenceScore: 0.94,
-          awsEventBridgeEventId: ebId
-        }, null, 2);
-      } else if (scenario === 'INTRUSION') {
-        document.getElementById('statusVal').innerText = "CRITICAL 🚨";
-        document.getElementById('statusVal').style.color = "var(--alert-red)";
-        document.getElementById('anomalyVal').innerText = "INTRUSION_DETECTED";
-        document.getElementById('ebVal').innerText = ebId;
-        document.getElementById('awsOutput').innerText = JSON.stringify({
-          action: "PERIMETER_LOCKDOWN",
-          trigger: "INTRUSION_DETECTED",
-          confidenceScore: 0.96,
-          awsEventBridgeEventId: ebId
-        }, null, 2);
-      } else {
-        document.getElementById('statusVal').innerText = "NORMAL ✅";
-        document.getElementById('statusVal').style.color = "var(--accent-green)";
-        document.getElementById('anomalyVal').innerText = "NONE (Compliant)";
-        document.getElementById('ebVal').innerText = "N/A (No Alert)";
-        document.getElementById('awsOutput').innerText = JSON.stringify({
-          status: "CLEAN_CORRIDOR",
-          action: "NO_DISPATCH"
-        }, null, 2);
-      }
-    }
-  </script>
+</div>
+<script>
+var fmt=function(v,d){d=d===undefined?1:d;return Number(v||0).toFixed(d);};
+async function boot(){
+  var m={},events=[];
+  try{m=await (await fetch("data/metrics.json")).json();}catch(e){}
+  try{
+    var txt=await (await fetch("data/events.jsonl")).text();
+    events=txt.split("\n").filter(function(l){return l.trim();}).map(function(l){return JSON.parse(l);});
+  }catch(e){}
+  var inf=m.inference_ms||{};
+  document.getElementById("cvv").textContent=m.opencv_version||"-";
+  document.getElementById("frames").textContent=m.frames||"-";
+  document.getElementById("alerts").textContent=m.alerts_dispatched||m.events_total||"-";
+  document.getElementById("src").textContent="source: "+(m.source||"assets/vtest.avi");
+  var stats=[
+    ["frames analysed",m.frames||0,""],
+    ["clip length",fmt(m.duration_s,1),"s"],
+    ["mean persons/frame",fmt(m.persons&&m.persons.mean,2),""],
+    ["peak persons",(m.persons&&m.persons.max)||0,""],
+    ["inference p50",fmt(inf.p50,1),"ms"],
+    ["inference p95",fmt(inf.p95,1),"ms"],
+    ["motion ratio",fmt((m.motion_ratio_mean||0)*100,2),"%"],
+    ["alerts",m.alerts_dispatched||0,""]
+  ];
+  document.getElementById("stats").innerHTML=stats.map(function(s){
+    return "<div class=\"stat\"><div class=\"k\">"+s[0]+"</div><div class=\"v\">"+s[1]+"<small>"+s[2]+"</small></div></div>";
+  }).join("");
+  var rows=[["p50",inf.p50],["p95",inf.p95],["max",inf.max],["frame budget (mean)",m.frame_budget_ms&&m.frame_budget_ms.mean]];
+  document.getElementById("latency").innerHTML=rows.map(function(r){
+    return "<tr><th>"+r[0]+"</th><td>"+(r[1]==null?"-":fmt(r[1],2)+" ms")+"</td></tr>";
+  }).join("");
+  document.getElementById("feedcount").textContent=events.length+" events";
+  var feed=document.getElementById("feed");
+  if(!events.length){feed.innerHTML="<div class=\"empty\">No events recorded.</div>";return;}
+  feed.innerHTML=events.map(function(e){
+    return "<div class=\"ev "+(e.severity||"")+"\" data-t=\""+(e.timestamp_s||0)+"\"><div class=\"t\">"+fmt(e.timestamp_s,1)+"s</div><div class=\"name\">"+e.anomaly+"</div><div class=\"id\">"+(e.track_id!=null?"track "+e.track_id:"zone")+"</div></div>";
+  }).join("");
+  var player=document.getElementById("player");
+  feed.querySelectorAll(".ev").forEach(function(el){
+    el.addEventListener("click",function(){
+      player.currentTime=parseFloat(el.getAttribute("data-t"));
+      player.play().catch(function(){});
+    });
+  });
+  player.addEventListener("timeupdate",function(){
+    document.getElementById("clock").textContent="t="+fmt(player.currentTime,1)+"s";
+    var pct=player.duration?player.currentTime/player.duration*100:0;
+    document.getElementById("progress").style.width=pct.toFixed(1)+"%";
+  });
+}
+boot();
+</script>
 </body>
 </html>

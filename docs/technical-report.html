@@ -1,0 +1,159 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+@page { size: A4; margin: 18mm 16mm; }
+body { font-family: "Segoe UI", system-ui, sans-serif; font-size: 10.5pt; line-height: 1.55; color: #14181d; }
+h1 { font-size: 22pt; margin: 0 0 6pt; letter-spacing: -.02em; }
+h2 { font-size: 13pt; margin: 20pt 0 6pt; border-bottom: 1.5px solid #12b0e8; padding-bottom: 3pt; }
+h3 { font-size: 11pt; margin: 14pt 0 4pt; }
+p { margin: 6pt 0; }
+code { font-family: Consolas, monospace; font-size: 9pt; background: #eef3f7; padding: 1px 3px; border-radius: 3px; }
+pre { background: #0d1724; color: #dbe7f2; padding: 9pt 11pt; border-radius: 5px; font-size: 8.6pt; overflow: visible; white-space: pre-wrap; }
+pre code { background: none; color: inherit; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 8pt 0; font-size: 9.5pt; }
+th, td { border: 1px solid #c9d4de; padding: 4pt 7pt; text-align: left; }
+th { background: #eef3f7; }
+blockquote { border-left: 3px solid #12b0e8; margin: 8pt 0; padding: 2pt 10pt; color: #45596b; }
+strong { color: #0b1622; }
+li { margin: 3pt 0; }
+</style></head><body><h1>OpenCV 5 Agentic Vision Sentinel — Technical Report</h1>
+<p><strong>Competition:</strong> OpenCV AI Competition 2026, powered by AWS<br />
+<strong>Team:</strong> Tingqiu Liu (@liutingqiu)<br />
+<strong>Repository:</strong> https://github.com/liutingqiu/opencv5-aws-agentic-vision-sentinel<br />
+<strong>Runtime measured on:</strong> OpenCV 5.0.0, Python 3.13.14, Windows 11, x86-64 CPU (no GPU)</p>
+<hr />
+<h2>1. Problem and users</h2>
+<p>Fixed-camera sites — substations, loading docks, construction perimeters, remote asset yards — already own the camera but not the attention. A human watching 12 streams misses most events; shipping every frame to a cloud inference service costs more than the guard it replaces and adds a round trip that makes any alert arrive after it mattered.</p>
+<p>The users this targets:</p>
+<ul>
+<li><strong>Site safety officers</strong> who need to know that someone entered a restricted area or has stopped moving inside it.</li>
+<li><strong>Operations engineers</strong> who want evidence attached to an alert, not a notification that says "motion detected".</li>
+<li><strong>Small operators</strong> who cannot fund a 24/7 cloud video pipeline and need the analysis to run on hardware they already have.</li>
+</ul>
+<p>The design constraint follows from that: <strong>decide at the edge, escalate to the cloud only when a decision was made.</strong></p>
+<h2>2. What the system does</h2>
+<p>Four stages, executed per frame:</p>
+<ol>
+<li><strong>OpenCV 5 detection</strong> — SSD-MobileNet-v1 (COCO) exported to ONNX and executed by the OpenCV 5 DNN engine, filtered to the person class with geometric sanity checks.</li>
+<li><strong>Classical motion channel</strong> — MOG2 background subtraction plus contour extraction, kept independent of the learned detector so the two signals can be compared.</li>
+<li><strong>Spatial decision layer</strong> — a polygon zone, a ground-contact point per detection, greedy frame-to-frame association, and dwell timing. This is where a detection becomes an event.</li>
+<li><strong>AWS escalation</strong> — on an event, the annotated frame is written to S3, a structured detail is published to EventBridge, and an alert message is queued in SQS.</li>
+</ol>
+<p>A fifth artifact stage writes everything the run produced (<code>annotated.mp4</code>, <code>evidence/*.jpg</code>, <code>events.jsonl</code>, <code>metrics.json</code>, <code>dispatches.json</code>, <code>aws_calls.jsonl</code>) so the numbers in this report, the demo video, and the web page all come from one directory.</p>
+<h2>3. OpenCV 5 implementation</h2>
+<p><code>cv2.__version__ == 5.0.0</code>. Two OpenCV 5 specifics shaped the code:</p>
+<p><strong>DNN input contract.</strong> The 5.0 DNN engine validates the declared graph input instead of coercing it. <code>ssd_mobilenet_v1_10.onnx</code> declares a uint8 <code>image_tensor:0</code>, so <code>cv2.dnn.blobFromImage</code> (float32 NCHW) is rejected with <code>CV_32FC1 given, CV_8UC1 expected</code>. The tensor is therefore built as a uint8 NHWC array:</p>
+<pre><code class="language-python">tensor = cv2.resize(frame, (300, 300)).astype(np.uint8)[None]
+self.net.setInput(tensor)
+raw = self.net.forward(self.output_names)   # one graph execution, four outputs
+</code></pre>
+<p>Requesting each output with <code>forward(name)</code> re-runs the graph and measured <strong>92 ms</strong> instead of roughly <strong>25 ms</strong> per frame. That single change is the difference between a 10 fps budget being met and missed.</p>
+<p><strong>Legacy API surface.</strong> <code>cv2.HOGDescriptor</code> is gone in 5.0, which ruled out the usual pedestrian baseline; MOG2, <code>findContours</code> (two-value return), <code>pointPolygonTest</code>, <code>morphologyEx</code>, and the HSV conversions all behave as expected.</p>
+<p>Modules used: <code>cv2.VideoCapture</code>, <code>cv2.dnn</code>, <code>cv2.createBackgroundSubtractorMOG2</code>, <code>cv2.threshold</code>, <code>cv2.dilate</code>, <code>cv2.morphologyEx</code>, <code>cv2.findContours</code>, <code>cv2.contourArea</code>, <code>cv2.boundingRect</code>, <code>cv2.cvtColor</code>, <code>cv2.inRange</code>, <code>cv2.bitwise_and/or</code>, <code>cv2.fillPoly</code>, <code>cv2.polylines</code>, <code>cv2.pointPolygonTest</code>, <code>cv2.VideoWriter</code>, <code>cv2.imwrite</code>.</p>
+<h2>4. AWS deployment</h2>
+<p>One boto3 boundary (<code>sentinel/aws_dispatch.py</code>), three services, one code path:</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Call</th>
+<th>What it carries</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Evidence</td>
+<td><code>s3.put_object</code></td>
+<td>JPEG of the annotated frame plus anomaly/frame metadata</td>
+</tr>
+<tr>
+<td>Event</td>
+<td><code>events.put_events</code></td>
+<td><code>Source=sentinel.edge.cv5</code>, <code>DetailType=SentinelAnomaly</code>, JSON detail</td>
+</tr>
+<tr>
+<td>Alert</td>
+<td><code>sqs.send_message</code></td>
+<td>Same detail, with severity and anomaly as message attributes</td>
+</tr>
+</tbody>
+</table>
+<p><code>--mode aws</code> uses ambient credentials and an existing bucket/queue (<code>AwsConfig</code>). <code>--mode local</code> routes the identical calls through moto so the request/response chain — ETag, <code>EventId</code>, <code>MessageId</code>, MD5 — is exercised and logged without an account. <strong>The recorded run used <code>local</code>.</strong> This is stated here, on the project page, and in the video: the cloud boundary is implemented and reproducible, and the identifiers in <code>runs/demo/dispatches.json</code> come from a real boto3 round trip, but they were produced by the moto backend, not by an AWS account.</p>
+<p>Deploying against a live account is one command after credentials are present:</p>
+<pre><code class="language-bash">AWS_REGION=us-east-1 AWS_PROFILE=sentinel \
+  python -m sentinel.cli --source assets/vtest.avi --out runs/aws --mode aws
+</code></pre>
+<h2>5. Evaluation</h2>
+<p><strong>Input.</strong> <code>assets/vtest.avi</code> — 768x576, 10 fps, 795 frames (79.5 s), a fixed-camera pedestrian scene from the OpenCV sample set. No tuning frames were held out; the clip is the only data used, which is a real limitation of this evaluation and is treated as such in §7.</p>
+<p><strong>Hardware.</strong> Single-socket x86-64 CPU, no GPU, no OpenVINO/NPU acceleration, single-threaded pipeline loop.</p>
+<p><strong>Result of the submitted run:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frames analysed</td>
+<td>795 / 795 (no drops)</td>
+</tr>
+<tr>
+<td>Detections per frame (mean / peak)</td>
+<td>4.48 / 9</td>
+</tr>
+<tr>
+<td>Frames with at least one person</td>
+<td>795 / 795</td>
+</tr>
+<tr>
+<td>Inference latency p50</td>
+<td>23.31 ms</td>
+</tr>
+<tr>
+<td>Inference latency p95</td>
+<td>30.62 ms</td>
+</tr>
+<tr>
+<td>Inference latency max</td>
+<td>34.89 ms</td>
+</tr>
+<tr>
+<td>End-to-end frame budget (mean)</td>
+<td>31.54 ms</td>
+</tr>
+<tr>
+<td>Motion mask coverage (mean)</td>
+<td>2.75 % of pixels</td>
+</tr>
+<tr>
+<td>Events raised</td>
+<td>92 (68 <code>INTRUSION_DETECTED</code>, 24 <code>DWELL_EXCEEDED</code>)</td>
+</tr>
+<tr>
+<td>Alerts dispatched</td>
+<td>92 (S3 + EventBridge + SQS each)</td>
+</tr>
+</tbody>
+</table>
+<p>Against a 10 fps source (100 ms per frame) one stream consumes about 32 ms of that budget, roughly 3x real-time headroom. Four streams would need 126 ms per 100 ms of wall clock, which does not fit; a single CPU node sustains two streams at 10 fps with margin. That is the capacity number, measured rather than assumed.</p>
+<p><strong>Reproduction.</strong> <code>pytest tests -q</code> → 9 passed in ~7 s. The suite covers real-frame detection, geometric filtering, zone entry/dwell semantics (exactly one alert per track per entry), end-to-end artifact writing, and the cloud dispatch contract (asserting non-empty <code>MessageId</code> / <code>EventId</code> and <code>FailedEntryCount == 0</code>).</p>
+<h2>6. Failure cases and limitations</h2>
+<p>These are measured behaviours, not hypotheticals:</p>
+<ol>
+<li><strong>Static false positives.</strong> At 300x300 input the SSD cannot separate a distant pedestrian from a bollard or bin. The submitted run still contains detections on static objects at score ~0.42-0.50. A minimum box height of 40 px removed the worst of them; it did not remove all.</li>
+<li><strong>No identity persistence.</strong> Association is greedy nearest-ground-point with a 90 px gate. Two people crossing inside the zone can swap tracks, which splits one dwell interval into two and can double-count an alert. A real tracker (ByteTrack/OC-SORT) is the fix; it is not implemented here.</li>
+<li><strong>Zone geometry is hand-drawn</strong> in normalised coordinates for this camera. Any other camera needs a new polygon — there is no auto-calibration.</li>
+<li><strong>Thermal stage is a colour proxy.</strong> <code>THERMAL_PROXY_HIGH</code> fires on warm-hue, high-saturation regions inside the zone. It is not radiometric thermography and it did not fire on this clip, so it carries no measured evidence — it is reported as implemented, not as validated.</li>
+<li><strong>The sample clip has no PPE ground truth.</strong> Helmet/vest logic that appeared in the previous description is not implemented, because the evaluation data cannot support it. It is deliberately absent rather than claimed.</li>
+<li><strong>No accuracy benchmark.</strong> Precision/recall against a labelled set was not run. The report gives latency, event counts and qualitative inspection of annotated frames; it does not claim a detection F1.</li>
+</ol>
+<h2>7. Responsible operation</h2>
+<ul>
+<li>Frames never leave the device unless an event fires; the S3 write is one JPEG of an already-annotated frame, not a video stream.</li>
+<li>The sample clip is a public OpenCV test asset of an outdoor scene; no live camera, no personal data, no faces collected for this evaluation.</li>
+<li>Alerts carry a track id, a timestamp and an evidence key — enough for a human to check, never a decision taken on a person automatically.</li>
+<li><code>events.jsonl</code> and <code>dispatches.json</code> are the audit trail: every alert on the page can be traced to a frame index, an evidence file and a cloud request identifier.</li>
+<li>A production deployment would need retention limits on the evidence bucket and a DPIA for the site; neither is in scope here.</li>
+</ul>
+<h2>8. What is deliberately not claimed</h2>
+<p>The earlier version of this submission described an "OpenCV 5 multimodal edge pipeline" whose implementation contained no OpenCV call and no AWS request. That description was wrong and has been replaced. What exists now is narrower and verifiable: OpenCV 5 really decodes and analyses frames, and a real boto3 layer really publishes alerts. Where evidence is missing — accuracy against labels, COOL on Graviton, PPE detection — this report says so instead of asserting it.</p></body></html>

@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 640" width="1180" height="640" font-family="IBM Plex Mono, Consolas, monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1622"/><stop offset="1" stop-color="#060b13"/></linearGradient>
+    <linearGradient id="cv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f3d55"/><stop offset="1" stop-color="#0a2436"/></linearGradient>
+    <linearGradient id="aws" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a2c05"/><stop offset="1" stop-color="#241703"/></linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#12303f"/><stop offset="1" stop-color="#0a1c26"/></linearGradient>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#4f6d86"/></marker>
+    <marker id="arwa" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#ff9900"/></marker>
+  </defs>
+  <rect width="1180" height="640" fill="url(#bg)"/>
+  <text x="40" y="46" fill="#e8f0f8" font-size="21" font-family="Space Grotesk, Segoe UI, sans-serif" font-weight="700">OpenCV 5 Agentic Vision Sentinel &#8212; execution graph</text>
+  <text x="40" y="70" fill="#8ba0b6" font-size="12">Edge analysis is CPU-only and credential-free; cloud dispatch is a single boto3 boundary that runs against moto (local) or a live account (aws).</text>
+
+  <rect x="40" y="120" width="150" height="118" rx="10" fill="url(#edge)" stroke="#25404f"/>
+  <text x="52" y="146" fill="#8ba0b6" font-size="10">STAGE 1</text>
+  <text x="52" y="168" fill="#e8f0f8" font-size="13">Video source</text>
+  <text x="52" y="190" fill="#8ba0b6" font-size="11">cv2.VideoCapture</text>
+  <text x="52" y="207" fill="#8ba0b6" font-size="11">768x576 @ 10 fps</text>
+  <text x="52" y="224" fill="#8ba0b6" font-size="11">795 frames</text>
+
+  <rect x="230" y="104" width="300" height="300" rx="10" fill="url(#cv)" stroke="#12b0e8" stroke-opacity=".55"/>
+  <text x="244" y="132" fill="#12b0e8" font-size="10">STAGE 2 &#183; OPENCV 5.0.0 EDGE CORE</text>
+  <rect x="250" y="146" width="260" height="54" rx="7" fill="#0a2233" stroke="#1d4a63"/>
+  <text x="262" y="166" fill="#e8f0f8" font-size="12">SSD-MobileNet-v1 (ONNX)</text>
+  <text x="262" y="185" fill="#8ba0b6" font-size="10.5">cv2.dnn &#183; uint8 NHWC &#183; 25.6 ms p50</text>
+  <rect x="250" y="210" width="260" height="54" rx="7" fill="#0a2233" stroke="#1d4a63"/>
+  <text x="262" y="230" fill="#e8f0f8" font-size="12">MOG2 motion channel</text>
+  <text x="262" y="249" fill="#8ba0b6" font-size="10.5">findContours &#183; dilate &#183; area filter</text>
+  <rect x="250" y="274" width="260" height="54" rx="7" fill="#0a2233" stroke="#1d4a63"/>
+  <text x="262" y="294" fill="#e8f0f8" font-size="12">HSV thermal proxy</text>
+  <text x="262" y="313" fill="#8ba0b6" font-size="10.5">warm-hue mask inside zone ROI</text>
+  <rect x="250" y="338" width="260" height="48" rx="7" fill="#0a2233" stroke="#1d4a63"/>
+  <text x="262" y="358" fill="#e8f0f8" font-size="12">Polygon zone + dwell tracker</text>
+  <text x="262" y="376" fill="#8ba0b6" font-size="10.5">pointPolygonTest &#183; greedy association</text>
+
+  <rect x="580" y="150" width="230" height="132" rx="10" fill="url(#edge)" stroke="#25404f"/>
+  <text x="594" y="176" fill="#8ba0b6" font-size="10">STAGE 3 &#183; DECISION</text>
+  <text x="594" y="198" fill="#e8f0f8" font-size="12">Event classifier</text>
+  <text x="594" y="220" fill="#ffb14d" font-size="11">INTRUSION_DETECTED</text>
+  <text x="594" y="238" fill="#ffb14d" font-size="11">DWELL_EXCEEDED</text>
+  <text x="594" y="256" fill="#ffb14d" font-size="11">THERMAL_PROXY_HIGH</text>
+  <text x="594" y="274" fill="#8ba0b6" font-size="10.5">threshold gate &#183; one alert / track</text>
+
+  <rect x="860" y="104" width="280" height="300" rx="10" fill="url(#aws)" stroke="#ff9900" stroke-opacity=".5"/>
+  <text x="874" y="132" fill="#ff9900" font-size="10">STAGE 4 &#183; AWS SERVERLESS (boto3)</text>
+  <rect x="880" y="146" width="240" height="44" rx="7" fill="#2a1c06" stroke="#5c3d0c"/>
+  <text x="892" y="165" fill="#e8f0f8" font-size="12">Amazon S3</text>
+  <text x="892" y="181" fill="#8ba0b6" font-size="10.5">put_object &#183; evidence/*.jpg</text>
+  <rect x="880" y="198" width="240" height="44" rx="7" fill="#2a1c06" stroke="#5c3d0c"/>
+  <text x="892" y="217" fill="#e8f0f8" font-size="12">Amazon EventBridge</text>
+  <text x="892" y="233" fill="#8ba0b6" font-size="10.5">put_events &#183; SentinelAnomaly</text>
+  <rect x="880" y="250" width="240" height="44" rx="7" fill="#2a1c06" stroke="#5c3d0c"/>
+  <text x="892" y="269" fill="#e8f0f8" font-size="12">Amazon SQS</text>
+  <text x="892" y="285" fill="#8ba0b6" font-size="10.5">send_message &#183; severity attr</text>
+  <rect x="880" y="302" width="240" height="44" rx="7" fill="#2a1c06" stroke="#5c3d0c"/>
+  <text x="892" y="321" fill="#e8f0f8" font-size="12">Alert router (Lambda target)</text>
+  <text x="892" y="337" fill="#8ba0b6" font-size="10.5">subscription on the bus rule</text>
+
+  <rect x="230" y="440" width="910" height="86" rx="10" fill="#0a1420" stroke="#1d2c3f"/>
+  <text x="246" y="466" fill="#8ba0b6" font-size="10">STAGE 5 &#183; ARTIFACTS WRITTEN PER RUN</text>
+  <text x="246" y="490" fill="#e8f0f8" font-size="11.5">annotated.mp4 &#160;&#183;&#160; evidence/*.jpg &#160;&#183;&#160; events.jsonl &#160;&#183;&#160; metrics.json &#160;&#183;&#160; dispatches.json &#160;&#183;&#160; aws_calls.jsonl</text>
+  <text x="246" y="510" fill="#8ba0b6" font-size="10.5">The same directory feeds this page, the technical report and the judge demo video.</text>
+
+  <rect x="40" y="270" width="150" height="86" rx="10" fill="#0a1420" stroke="#1d2c3f"/>
+  <text x="52" y="296" fill="#8ba0b6" font-size="10">OPERATOR VIEW</text>
+  <text x="52" y="318" fill="#e8f0f8" font-size="12">Static run record</text>
+  <text x="52" y="338" fill="#8ba0b6" font-size="10.5">video + alert timeline</text>
+
+  <line x1="190" y1="179" x2="228" y2="179" stroke="#4f6d86" stroke-width="1.6" marker-end="url(#arw)"/>
+  <line x1="530" y1="240" x2="578" y2="216" stroke="#4f6d86" stroke-width="1.6" marker-end="url(#arw)"/>
+  <line x1="810" y1="216" x2="858" y2="216" stroke="#ff9900" stroke-width="1.6" marker-end="url(#arwa)"/>
+  <line x1="380" y1="404" x2="380" y2="438" stroke="#4f6d86" stroke-width="1.2" stroke-dasharray="4 4" marker-end="url(#arw)"/>
+  <line x1="115" y1="400" x2="115" y2="356" stroke="#4f6d86" stroke-width="1.2" stroke-dasharray="4 4" marker-end="url(#arw)"/>
+  <text x="40" y="576" fill="#8ba0b6" font-size="10.5">Measured on the submitted run: 795 frames &#183; inference p50 23.3 ms / p95 30.6 ms &#183; 92 alerts dispatched &#183; 0 network calls in edge stages.</text>
+  <text x="40" y="598" fill="#5c7590" font-size="10.5">Thermal stage is a colour proxy, not radiometric thermography. The AWS boundary ran under moto for the recorded run; --mode aws uses the same code path against a live account.</text>
+</svg>

@@ -1,0 +1,28 @@
+{
+  "opencv_version": "5.0.0",
+  "frames": 795,
+  "fps": 10.0,
+  "duration_s": 79.5,
+  "persons": {
+    "mean": 4.48,
+    "max": 9,
+    "frames_with_person": 795
+  },
+  "inference_ms": {
+    "mean": 24.88,
+    "p50": 23.31,
+    "p95": 30.62,
+    "max": 34.89
+  },
+  "frame_budget_ms": {
+    "mean": 31.54
+  },
+  "events_total": 92,
+  "events_by_type": {
+    "INTRUSION_DETECTED": 68,
+    "DWELL_EXCEEDED": 24
+  },
+  "motion_ratio_mean": 0.02748,
+  "aws_mode": "local",
+  "alerts_dispatched": 92
+}

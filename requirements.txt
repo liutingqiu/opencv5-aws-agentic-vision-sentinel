@@ -1,0 +1,5 @@
+opencv-python==5.0.0.93
+numpy==2.5.4
+boto3==1.43.118
+moto==5.1.22
+pytest==9.0.1
